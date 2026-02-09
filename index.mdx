@@ -26,9 +26,13 @@ Powered by the **Percolator engine** — an open-source perpetual futures protoc
 
 ## Architecture
 
-```
-User Wallet  →  Purple.trade UI  →  Percolator SDK  →  Solana RPC
-                                      └── Convex DB (metadata, candles, trade history)
+```mermaid
+graph LR
+    A[User Wallet] --> B[Purple.trade UI]
+    B --> C[Percolator SDK]
+    C --> D[Solana RPC]
+    B --> E[Convex DB]
+    E -.- F[metadata, candles, trade history]
 ```
 
 - **Execution**: All trades settle on-chain in a single Solana transaction

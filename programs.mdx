@@ -59,19 +59,11 @@ All Percolator programs are currently deployed on Solana **devnet** for testing.
 
 ## Program Architecture
 
-```
-┌──────────────────────┐     ┌──────────────────────┐
-│  percolator-prog     │     │   percolator-match    │
-│  (perpetual engine)  │────▶│   (LP matcher, 50bps) │
-└──────────┬───────────┘     └───────────────────────┘
-           │
-           ▼
-┌──────────────────────┐     ┌──────────────────────┐
-│    Slab Account      │     │   percolator          │
-│  (full market state) │     │   (verified risk lib) │
-│  4096 account slots  │     │   Kani model checking │
-│  ~992 KB, ~6.9 SOL   │     └───────────────────────┘
-└──────────────────────┘
+```mermaid
+graph TD
+    A["percolator-prog\n(perpetual engine)"] -->|CPI| B["percolator-match\n(LP matcher, 50bps)"]
+    A --> C["Slab Account\n(full market state)\n4096 slots · ~992 KB · ~6.9 SOL"]
+    D["percolator\n(verified risk lib)\nKani model checking"] -.->|invariants| A
 ```
 
 Each perpetual market is a single slab account owned by the Percolator program. The Matcher program handles LP order matching via CPI. The risk engine library provides formally verified invariants that the on-chain program enforces.

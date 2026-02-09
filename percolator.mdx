@@ -13,23 +13,21 @@ Purple.trade deploys its own instance of the Percolator program and provides a f
 
 A slab is a single Solana account that contains the entire state of one perpetual market:
 
-```
-┌─────────────────────────────────────────┐
-│ Header (72 bytes)                       │
-│   magic, version, bump, admin           │
-├─────────────────────────────────────────┤
-│ MarketConfig (320 bytes)                │
-│   collateral mint, oracle config,       │
-│   margin thresholds, funding params     │
-├─────────────────────────────────────────┤
-│ Engine State (at offset 392)            │
-│   open interest, funding accumulators,  │
-│   crank state, risk parameters          │
-├─────────────────────────────────────────┤
-│ Account Slots (240 bytes each)          │
-│   Up to 4096 user/LP accounts           │
-│   Position data, collateral, PnL        │
-└─────────────────────────────────────────┘
+```mermaid
+block-beta
+    columns 1
+    block:header["Header (72 bytes)"]
+        h1["magic, version, bump, admin"]
+    end
+    block:config["MarketConfig (320 bytes)"]
+        c1["collateral mint, oracle config, margin thresholds, funding params"]
+    end
+    block:engine["Engine State (at offset 392)"]
+        e1["open interest, funding accumulators, crank state, risk parameters"]
+    end
+    block:accounts["Account Slots (240 bytes × 4096)"]
+        a1["Position data, collateral, PnL per user/LP"]
+    end
 ```
 
 | Constant | Value |
