@@ -12,27 +12,22 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Documentation",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "index",
-              "trading",
-              "launch"
-            ]
-          },
-          {
-            "group": "Protocol",
-            "pages": [
-              "percolator",
-              "history",
-              "verification",
-              "programs"
-            ]
-          }
+        "group": "Overview",
+        "pages": [
+          "index",
+          "trading",
+          "launch"
+        ]
+      },
+      {
+        "group": "Protocol",
+        "pages": [
+          "percolator",
+          "history",
+          "verification",
+          "programs"
         ]
       }
     ],

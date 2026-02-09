@@ -33,14 +33,14 @@ graph LR
     A[User Wallet] --> B[Purple.trade UI]
     B --> C[Percolator SDK]
     C --> D[Solana RPC]
-    B --> E[Convex DB]
+    B --> E[Backend]
     E -.- F[metadata, candles, trade history]
 ```
 
 - **Execution**: All trades settle on-chain in a single Solana transaction
 - **Liquidity**: vAMM (virtual automated market maker) — no external LPs required at launch
 - **Oracle**: Authority mode for small-cap tokens, Pyth integration for established feeds
-- **Data**: Real-time candles, trade detection, and position tracking via Convex backend
+- **Data**: Real-time candles, trade detection, and position tracking
 
 ## Market Parameters
 
