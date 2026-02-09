@@ -26,21 +26,13 @@ Powered by the **Percolator engine** — an open-source perpetual futures protoc
   </Card>
 </CardGroup>
 
-## Architecture
+## How It Works
 
-```mermaid
-graph LR
-    A[User Wallet] --> B[Purple.trade UI]
-    B --> C[Percolator SDK]
-    C --> D[Solana RPC]
-    B --> E[Backend]
-    E -.- F[metadata, candles, trade history]
-```
-
-- **Execution**: All trades settle on-chain in a single Solana transaction
-- **Liquidity**: vAMM (virtual automated market maker) — no external LPs required at launch
-- **Oracle**: Authority mode for small-cap tokens, Pyth integration for established feeds
-- **Data**: Real-time candles, trade detection, and position tracking
+- **Fully on-chain** — every trade settles in a single Solana transaction, no off-chain matching
+- **One slab = one market** — entire market state (positions, collateral, funding) lives in a single account
+- **Token is the collateral** — inverted perpetual model, no stablecoins or synthetics needed
+- **Instant liquidity** — vAMM provides liquidity from block one, no external LPs required
+- **Real-time data** — candles, trade history, and position tracking updated every 10 seconds
 
 ## Market Parameters
 
