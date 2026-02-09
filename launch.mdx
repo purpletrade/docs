@@ -5,22 +5,22 @@ description: "Launch a token and get an automatic perpetual trading market"
 
 ## Overview
 
-Purple.trade's launch pipeline turns any new token into a tradeable perpetual market. The process uses **Meteora Dynamic Bonding Curves (DBC)** for price discovery, then automatically deploys a Percolator perpetual market when the bonding curve completes.
+purple.trade's launch pipeline turns any new token into a tradeable perpetual market. The process uses **Meteora Dynamic Bonding Curves (DBC)** for price discovery, then automatically deploys a Percolator perpetual market when the bonding curve completes.
 
 ## How It Works
 
 <Steps>
   <Step title="Create your token">
-    Submit your token details (name, symbol, description, logo) through the Purple.trade launch page. A Meteora DBC pool is created automatically.
+    Submit your token details (name, symbol, description, logo) through the purple.trade launch page. A Meteora DBC pool is created automatically.
   </Step>
   <Step title="Bonding curve phase">
     Users buy and sell on the Meteora bonding curve. Price discovery happens naturally — Meteora handles all the mechanics.
   </Step>
   <Step title="Bond threshold reached">
-    When the pool reaches the SOL threshold, Meteora triggers migration. Purple.trade detects this automatically via webhook.
+    When the pool reaches the SOL threshold, Meteora triggers migration. purple.trade detects this automatically via webhook.
   </Step>
   <Step title="Perpetual market deployed">
-    Purple.trade automatically deploys a full Percolator perpetual market for your token — slab creation, oracle setup, LP initialization, and seed liquidity. No manual steps required.
+    purple.trade automatically deploys a full Percolator perpetual market for your token — slab creation, oracle setup, LP initialization, and seed liquidity. No manual steps required.
   </Step>
 </Steps>
 
@@ -51,7 +51,7 @@ The entire deployment takes a few seconds and costs approximately 10 SOL (funded
 
 Once the perpetual market is live:
 
-- The token appears on Purple.trade's market list with a "Live" badge
+- The token appears on purple.trade's market list with a "Live" badge
 - Users can trade with up to 10x leverage immediately
 - Oracle prices are pushed automatically from market data
 - All standard trading features are available (candles, trade history, position tracking)

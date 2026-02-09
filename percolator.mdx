@@ -1,13 +1,13 @@
 ---
 title: "Percolator Engine"
-description: "The on-chain perpetual futures protocol powering Purple.trade"
+description: "The on-chain perpetual futures protocol powering purple.trade"
 ---
 
 ## Overview
 
 The Percolator engine is an open-source Solana program that implements perpetual futures entirely on-chain. Originally created by Solana co-founder [Anatoly Yakovenko](https://x.com/toly) in October 2025, it stores complete market state in a single account called a **slab**.
 
-Purple.trade deploys its own instance of the Percolator program and provides a full trading interface on top of it. See the [History](/history) page for the full story of Percolator's origins and Toly's involvement.
+purple.trade deploys its own instance of the Percolator program and provides a full trading interface on top of it. See the [History](/history) page for the full story of Percolator's origins and Toly's involvement.
 
 ## Slab Architecture
 
@@ -88,7 +88,7 @@ The Percolator supports multiple oracle sources:
 | **Authority** | All zeros | Platform pushes price via `PushOraclePrice` instruction |
 | **Pyth** | Pyth feed pubkey | Crank reads price from Pyth pull oracle |
 
-Purple.trade uses **authority mode** for small-cap tokens that don't have Pyth feeds. The platform pushes prices sourced from DEX aggregators (Meteora pool price, DexScreener).
+purple.trade uses **authority mode** for small-cap tokens that don't have Pyth feeds. The platform pushes prices sourced from DEX aggregators (Meteora pool price, DexScreener).
 
 ## Risk Engine
 
@@ -133,4 +133,4 @@ This means any SPL token can have a perpetual market without needing external li
   </Card>
 </CardGroup>
 
-Purple.trade's SDK has been verified byte-for-byte against the canonical source. See the [Source Verification](/verification) page for the full audit.
+purple.trade's SDK has been verified byte-for-byte against the canonical source. See the [Source Verification](/verification) page for the full audit.

@@ -1,19 +1,10 @@
-<svg width="160" height="28" viewBox="0 0 160 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Diamond hourglass icon -->
-  <path d="M14 4L20 12H8L14 4Z" fill="url(#pl1)"/>
-  <path d="M14 24L8 16H20L14 24Z" fill="url(#pl2)"/>
-  <!-- "purple" text -->
-  <text x="28" y="18.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="16" font-weight="700" fill="#1A1A2E" letter-spacing="-0.5">purple</text>
-  <!-- "trade" text -->
-  <text x="88" y="18.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="16" font-weight="500" fill="#7E3AF2" letter-spacing="-0.5">trade</text>
-  <defs>
-    <linearGradient id="pl1" x1="14" y1="4" x2="14" y2="12" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#A78BFA"/>
-      <stop offset="1" stop-color="#7E3AF2"/>
-    </linearGradient>
-    <linearGradient id="pl2" x1="14" y1="16" x2="14" y2="24" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#7E3AF2"/>
-      <stop offset="1" stop-color="#4C1D95"/>
-    </linearGradient>
-  </defs>
+<svg width="150" height="28" viewBox="0 0 150 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- "purple" -->
+  <text x="0" y="19" font-family="Manrope, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1A1A2E" letter-spacing="-0.3">purple</text>
+  <!-- Up arrow -->
+  <path d="M67 8L71 14H63L67 8Z" fill="#7E3AF2"/>
+  <!-- Down arrow -->
+  <path d="M67 20L63 14H71L67 20Z" fill="#7E3AF2" fill-opacity="0.4"/>
+  <!-- "trade" -->
+  <text x="76" y="19" font-family="Manrope, system-ui, -apple-system, sans-serif" font-size="16" font-weight="500" fill="#52525C" letter-spacing="-0.3">trade</text>
 </svg>

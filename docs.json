@@ -1,7 +1,10 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "maple",
-  "name": "Purple.trade",
+  "background": {
+    "decoration": "windows"
+  },
+  "name": "purple.trade",
   "colors": {
     "primary": "#7E3AF2",
     "light": "#A78BFA",
