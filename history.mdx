@@ -1,0 +1,92 @@
+---
+title: "History"
+description: "The origin of the Percolator protocol — from Solana co-founder Anatoly Yakovenko to Purple.trade"
+---
+
+## Origins
+
+Percolator is an open-source, sharded perpetual futures DEX protocol designed for Solana. It was created and open-sourced by Solana co-founder **Anatoly Yakovenko** ([@toly](https://x.com/toly)) in October 2025 as an experimental, high-performance perps engine.
+
+The protocol leverages Solana's speed and scalability through a unique "slab" system — a sharded matching engine that processes trades in parallel across independent units maintained by liquidity providers. This minimizes contagion risks found in traditional DEXs and enables atomic trade execution in a single transaction.
+
+## Timeline
+
+### October 2025 — Launch
+
+Yakovenko uploaded the initial GitHub repositories, including the risk engine, CLI, and matcher program. He described Percolator as "implementation-ready" but explicitly for educational and research purposes — unaudited and experimental.
+
+The architecture consists of:
+- A **Router program** for collateral management
+- **Slab programs** for matching and settlement
+- A **CLI** for trading, keeper operations, and market management
+
+Yakovenko positioned it as a challenge to developers to "fork and compete," sparking community interest and memecoin activity around tokens built on the protocol.
+
+### February 2026 — SOV & Self-Sovereign Markets
+
+On Solana devnet, Percolator evolved with community forks and active testing. Yakovenko proposed using it for **SOV** (self-sovereign / store-of-value) setups where tokens back their own inverted perpetual markets.
+
+The SOV model:
+- The memecoin IS the collateral in its own perpetual market
+- Admin keys are burned for immutability
+- Trading fees accrue in an insurance fund as a **soft burn** mechanism
+- Supply is effectively locked over time through accumulated fees
+
+<blockquote>
+**@toly** — February 7, 2026
+
+"sov = percolator inverted market for the memecoin, so it's backed by the memecoin + burn the admin key. The insurance fund will grow indefinitely from fees and will effectively be a soft burn."
+
+[View on X](https://x.com/toly/status/2020166026592403739)
+</blockquote>
+
+This tweet sparked discussions on self-backed memecoin perpetuals — where the coin serves as collateral in its own market, potentially reducing supply via locked fees. Yakovenko tied this to his proposal for Darwinian memecoin selection: weak projects die out, strong ones gain organic price mechanisms without external controls.
+
+## Toly's Dev Philosophy
+
+Yakovenko's engagement with Percolator has been characteristically direct and meme-driven, blending technical insights with provocative encouragement to fork and experiment:
+
+<blockquote>
+"Fork the code and point your 🦞 at it."
+
+— Using Solana's lobster meme to motivate developers
+</blockquote>
+
+<blockquote>
+"Store of value is a meme, store of meme has value."
+
+— On memecoin economics and the SOV model
+</blockquote>
+
+<blockquote>
+"What could possibly go wrong?"
+
+— Classic Toly sarcasm on self-backing risks
+</blockquote>
+
+On using AI for audits, Yakovenko advised forkers to use LLMs for specs and verification, ending with **"Don't trust, verify."** — the ethos Purple.trade follows with its [byte-for-byte source verification](/verification).
+
+## From Fork to Platform
+
+Purple.trade maintains the protocol repositories and builds the trading frontend on top of the Percolator engine. All four core repositories are open source:
+
+<CardGroup cols={2}>
+  <Card title="percolator-prog" icon="github" href="https://github.com/purpletrade/percolator-prog">
+    Core Solana smart contract — the perpetual futures engine (~4,400 lines of Rust).
+  </Card>
+  <Card title="percolator-cli" icon="github" href="https://github.com/purpletrade/percolator-cli">
+    CLI for account init, deposits/withdrawals, trading, and keeper operations. Includes stress-test bots. Apache 2.0 licensed.
+  </Card>
+  <Card title="percolator-match" icon="github" href="https://github.com/purpletrade/percolator-match">
+    Passive LP matcher program with a 50bps spread.
+  </Card>
+  <Card title="percolator" icon="github" href="https://github.com/purpletrade/percolator">
+    Formally verified risk engine library using Kani for invariants like conservation and isolation — ensures no over-withdrawals.
+  </Card>
+</CardGroup>
+
+Original development stemmed from Yakovenko's repositories ([aeyakovenko/percolator-prog](https://github.com/aeyakovenko/percolator-prog), [aeyakovenko/percolator-cli](https://github.com/aeyakovenko/percolator-cli)), with Purple.trade repositories representing the ongoing community-driven deployment.
+
+<Warning>
+  All Percolator programs are currently deployed on Solana **devnet** only. The protocol is unaudited and experimental. Do not use real funds.
+</Warning>

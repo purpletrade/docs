@@ -1,19 +1,39 @@
 ---
 title: "Programs & Deployments"
-description: "Solana program IDs and deployment addresses"
+description: "Solana program IDs, repositories, and deployment addresses"
 ---
 
-## Percolator Program
+## Repositories
 
-Purple.trade deploys its own instance of the Percolator perpetual futures engine on Solana. The program source is based on the canonical open-source implementation by Anatoly Yakovenko.
+The Percolator protocol consists of four open-source repositories, originally created by Solana co-founder Anatoly Yakovenko and maintained by Purple.trade:
 
-<Card title="Source Code" icon="github" href="https://github.com/aeyakovenko/percolator-prog">
-  `aeyakovenko/percolator-prog` — the canonical Percolator program source.
-</Card>
+<CardGroup cols={2}>
+  <Card title="percolator-prog" icon="github" href="https://github.com/purpletrade/percolator-prog">
+    Core Solana smart contract — the perpetual futures engine. Single-file Rust program (~4,400 lines) implementing all 22 instructions, slab state management, and risk checks.
+  </Card>
+  <Card title="percolator-cli" icon="github" href="https://github.com/purpletrade/percolator-cli">
+    Command-line interface for account initialization, deposits, withdrawals, trading, and keeper crank operations. Includes stress-test bots. Apache 2.0 licensed.
+  </Card>
+  <Card title="percolator-match" icon="github" href="https://github.com/purpletrade/percolator-match">
+    Passive LP matcher program. Provides liquidity with a 50bps spread via CPI (cross-program invocation) from the main Percolator program.
+  </Card>
+  <Card title="percolator" icon="github" href="https://github.com/purpletrade/percolator">
+    Formally verified risk engine library. Uses Kani model checking for invariants like conservation (no value created from nothing) and isolation (no cross-account contagion) — ensures no over-withdrawals.
+  </Card>
+</CardGroup>
 
-## Devnet
+### Original Source
 
-Testing deployment for development and integration testing.
+These repositories are forked from Anatoly Yakovenko's original implementations:
+
+- [`aeyakovenko/percolator-prog`](https://github.com/aeyakovenko/percolator-prog) — Original program source
+- [`aeyakovenko/percolator-cli`](https://github.com/aeyakovenko/percolator-cli) — Original CLI
+
+See the [History](/history) page for the full story of Percolator's origins.
+
+## Devnet Deployment
+
+All Percolator programs are currently deployed on Solana **devnet** for testing.
 
 | Component | Address |
 |-----------|---------|
@@ -25,9 +45,13 @@ Testing deployment for development and integration testing.
   Devnet programs are for testing only. Tokens and positions on devnet have no value.
 </Note>
 
-## Mainnet
+### Devnet Explorer Links
 
-Production deployment details will be published here when mainnet launches.
+- [Percolator Program](https://explorer.solana.com/address/2SSnp35m7FQ7cRLNKGdW5UzjYFF6RBUNq7d3m5mqNByp?cluster=devnet)
+- [Matcher Program](https://explorer.solana.com/address/4HcGCsyjAqnFua5ccuXyt8KRRQzKFbGTJkVChpS7Yfzy?cluster=devnet)
+- [Meteora DBC](https://explorer.solana.com/address/dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN?cluster=devnet)
+
+## Mainnet
 
 <Info>
   Purple.trade is deploying its own Percolator program instance on Solana mainnet. Program addresses will be announced at launch.
@@ -37,34 +61,17 @@ Production deployment details will be published here when mainnet launches.
 
 ```
 ┌──────────────────────┐     ┌──────────────────────┐
-│  Percolator Program  │     │   Matcher Program     │
-│  (perpetual engine)  │────▶│   (LP matching)       │
+│  percolator-prog     │     │   percolator-match    │
+│  (perpetual engine)  │────▶│   (LP matcher, 50bps) │
 └──────────┬───────────┘     └───────────────────────┘
            │
            ▼
-┌──────────────────────┐
-│    Slab Account      │
-│  (full market state) │
-│  4096 account slots  │
-│  ~992 KB, ~6.9 SOL   │
+┌──────────────────────┐     ┌──────────────────────┐
+│    Slab Account      │     │   percolator          │
+│  (full market state) │     │   (verified risk lib) │
+│  4096 account slots  │     │   Kani model checking │
+│  ~992 KB, ~6.9 SOL   │     └───────────────────────┘
 └──────────────────────┘
 ```
 
-Each perpetual market is a single slab account owned by the Percolator program. The Matcher program handles LP order matching via CPI (cross-program invocation).
-
-## Explorer Links
-
-### Devnet
-
-- [Percolator Program](https://explorer.solana.com/address/2SSnp35m7FQ7cRLNKGdW5UzjYFF6RBUNq7d3m5mqNByp?cluster=devnet)
-- [Matcher Program](https://explorer.solana.com/address/4HcGCsyjAqnFua5ccuXyt8KRRQzKFbGTJkVChpS7Yfzy?cluster=devnet)
-- [Meteora DBC](https://explorer.solana.com/address/dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN?cluster=devnet)
-
-## Network Configuration
-
-Purple.trade is network-agnostic at the code level. The same application connects to devnet or mainnet based on environment configuration:
-
-| Environment | Convex Project | Solana Network |
-|-------------|---------------|----------------|
-| Development | `utmost-rook-749` | Devnet |
-| Production | TBA | Mainnet |
+Each perpetual market is a single slab account owned by the Percolator program. The Matcher program handles LP order matching via CPI. The risk engine library provides formally verified invariants that the on-chain program enforces.

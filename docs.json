@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "venus",
+  "theme": "maple",
   "name": "Purple.trade",
   "colors": {
     "primary": "#7E3AF2",
@@ -25,6 +25,7 @@
             "group": "Protocol",
             "pages": [
               "percolator",
+              "history",
               "verification",
               "programs"
             ]
@@ -41,7 +42,7 @@
         },
         {
           "anchor": "GitHub",
-          "href": "https://github.com/aeyakovenko/percolator-prog",
+          "href": "https://github.com/purpletrade",
           "icon": "github"
         }
       ]

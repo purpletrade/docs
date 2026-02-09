@@ -5,9 +5,9 @@ description: "The on-chain perpetual futures protocol powering Purple.trade"
 
 ## Overview
 
-The Percolator engine is an open-source Solana program that implements perpetual futures entirely on-chain. Originally created by [Anatoly Yakovenko](https://github.com/aeyakovenko/percolator-prog), it stores complete market state in a single account called a **slab**.
+The Percolator engine is an open-source Solana program that implements perpetual futures entirely on-chain. Originally created by Solana co-founder [Anatoly Yakovenko](https://x.com/toly) in October 2025, it stores complete market state in a single account called a **slab**.
 
-Purple.trade deploys its own instance of the Percolator program and provides a full trading interface on top of it.
+Purple.trade deploys its own instance of the Percolator program and provides a full trading interface on top of it. See the [History](/history) page for the full story of Percolator's origins and Toly's involvement.
 
 ## Slab Architecture
 
@@ -102,6 +102,11 @@ The crank-based risk engine runs checks on every trade:
 
 The **KeeperCrank** instruction with `callerIdx = 65535` is the permissionless sentinel value, meaning anyone can crank the engine.
 
+The risk engine library ([`percolator`](https://github.com/purpletrade/percolator)) is formally verified using **Kani model checking**, enforcing invariants like:
+- **Conservation**: No value created from nothing
+- **Isolation**: No cross-account contagion
+- **No over-withdrawals**: Users cannot extract more collateral than deposited + PnL
+
 ## Collateral Model
 
 Each market uses the **inverted perpetual** model:
@@ -115,10 +120,19 @@ This means any SPL token can have a perpetual market without needing external li
 
 ## Source Code
 
-The canonical Percolator program source is open and available:
+<CardGroup cols={2}>
+  <Card title="percolator-prog" icon="github" href="https://github.com/purpletrade/percolator-prog">
+    Core Solana smart contract (~4,400 lines of Rust).
+  </Card>
+  <Card title="percolator-cli" icon="github" href="https://github.com/purpletrade/percolator-cli">
+    CLI for trading, keeper operations, and market management.
+  </Card>
+  <Card title="percolator-match" icon="github" href="https://github.com/purpletrade/percolator-match">
+    Passive LP matcher with 50bps spread.
+  </Card>
+  <Card title="percolator" icon="github" href="https://github.com/purpletrade/percolator">
+    Formally verified risk engine (Kani).
+  </Card>
+</CardGroup>
 
-<Card title="percolator-prog" icon="github" href="https://github.com/aeyakovenko/percolator-prog">
-  Single-file Rust program (~4,400 lines) implementing the complete perpetual futures engine.
-</Card>
-
-Purple.trade's SDK has been verified byte-for-byte against this source. See the [Source Verification](/verification) page for the full audit.
+Purple.trade's SDK has been verified byte-for-byte against the canonical source. See the [Source Verification](/verification) page for the full audit.
