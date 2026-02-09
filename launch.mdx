@@ -1,0 +1,70 @@
+---
+title: "Token Launch"
+description: "Launch a token and get an automatic perpetual trading market"
+---
+
+## Overview
+
+Purple.trade's launch pipeline turns any new token into a tradeable perpetual market. The process uses **Meteora Dynamic Bonding Curves (DBC)** for price discovery, then automatically deploys a Percolator perpetual market when the bonding curve completes.
+
+## How It Works
+
+<Steps>
+  <Step title="Create your token">
+    Submit your token details (name, symbol, description, logo) through the Purple.trade launch page. A Meteora DBC pool is created automatically.
+  </Step>
+  <Step title="Bonding curve phase">
+    Users buy and sell on the Meteora bonding curve. Price discovery happens naturally — Meteora handles all the mechanics.
+  </Step>
+  <Step title="Bond threshold reached">
+    When the pool reaches the SOL threshold, Meteora triggers migration. Purple.trade detects this automatically via webhook.
+  </Step>
+  <Step title="Perpetual market deployed">
+    Purple.trade automatically deploys a full Percolator perpetual market for your token — slab creation, oracle setup, LP initialization, and seed liquidity. No manual steps required.
+  </Step>
+</Steps>
+
+## Auto-Deploy Pipeline
+
+When bonding completes, the following happens automatically:
+
+1. **InitMarket** — Creates a new slab account (4096 account slots) and vault
+2. **SetOracleAuthority** — Configures the price oracle
+3. **PushOraclePrice** — Seeds the initial price from the bonding curve
+4. **KeeperCrank** — Activates the risk engine
+5. **InitLP** — Creates the vAMM liquidity provider
+6. **DepositCollateral** — Seeds initial LP liquidity
+
+The entire deployment takes a few seconds and costs approximately 10 SOL (funded from the migration fee).
+
+## Bonding Curve Parameters
+
+| Parameter | Value |
+|-----------|-------|
+| Bond threshold | ~80 SOL |
+| Migration fee | ~13% (~10 SOL) |
+| LP lock | 100% locked (rug-proof) |
+| Token supply | 1,000,000,000 |
+| Fee decay | 50% → 2% over 15 minutes |
+
+## After Launch
+
+Once the perpetual market is live:
+
+- The token appears on Purple.trade's market list with a "Live" badge
+- Users can trade with up to 10x leverage immediately
+- Oracle prices are pushed automatically from market data
+- All standard trading features are available (candles, trade history, position tracking)
+
+## Failure Handling
+
+If auto-deploy fails for any reason:
+
+- The launch is marked as `bond_deploy_failed` with an error reason
+- Funds remain safe in the treasury
+- Admin can retry the deployment or intervene manually
+- Users are notified of the status on the launch page
+
+<Note>
+  Token launch is currently available on devnet for testing. Mainnet launch is coming soon.
+</Note>

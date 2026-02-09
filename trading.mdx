@@ -1,0 +1,87 @@
+---
+title: "Trading"
+description: "How to trade perpetual futures on Purple.trade"
+---
+
+## Overview
+
+Purple.trade offers on-chain perpetual futures with up to 10x leverage. Every trade settles in a single Solana transaction — no off-chain matching, no sequencer delays.
+
+## Getting Started
+
+<Steps>
+  <Step title="Connect your wallet">
+    Visit [purple.trade](https://purple.trade) and connect your Solana wallet (Solflare supported).
+  </Step>
+  <Step title="Select a market">
+    Choose from available perpetual markets on the home page. Each market shows live price, 24h volume, and open interest.
+  </Step>
+  <Step title="Open a position">
+    Select your direction (Long or Short), set your collateral amount and leverage (1x–10x), then submit the trade.
+  </Step>
+</Steps>
+
+## Inverted Perpetuals
+
+Purple.trade uses an **inverted perpetual** model. The token being traded *is* the collateral — no borrowing, no synthetics.
+
+| Action | What it means |
+|--------|---------------|
+| **Long token** | You expect the token price to go up. In the inverted engine this maps to a short position. |
+| **Short token** | You expect the token price to go down. In the inverted engine this maps to a long position. |
+
+The inversion is handled automatically by the UI — you just pick "Long" or "Short" on the token.
+
+## Margin & Leverage
+
+| Parameter | Value |
+|-----------|-------|
+| Max leverage | 10x |
+| Initial margin | 10% (1000 bps) |
+| Maintenance margin | 5% (500 bps) |
+| Trading fee | 0.1% (10 bps) per trade |
+
+Positions below maintenance margin are subject to liquidation. Under-leveraged positions (leverage < 1x) are valid and represent over-collateralized trades.
+
+## Atomic Crank + Trade
+
+Every trade transaction includes an atomic **KeeperCrank** instruction before the trade instruction. This ensures:
+
+1. The oracle price is fresh (within `max_crank_staleness_slots`)
+2. Risk engine state is up to date
+3. No separate keeper infrastructure is needed
+
+If the crank is stale, the transaction fails with `EngineUnauthorized` (error `0xf`) — this is a freshness check, not an authorization error.
+
+```
+TX = [SetComputeUnitLimit(400_000)] + [KeeperCrank] + [TradeCpi]
+```
+
+## Position Management
+
+Once a position is open, you can:
+
+- **Increase**: Add more collateral or increase leverage
+- **Decrease**: Reduce position size (partial close)
+- **Close**: Exit the entire position
+- **Deposit collateral**: Add margin without changing position size
+- **Withdraw collateral**: Remove excess margin (must stay above initial margin)
+
+## Real-Time Data
+
+Purple.trade's backend provides:
+
+- **Price ticks**: 10-second interval oracle price updates
+- **OHLCV candles**: 1m, 5m, 15m, 1h, 4h, 1d timeframes
+- **Trade detection**: Automatic detection of opens, closes, increases, decreases, and liquidations
+- **Position sync**: On-chain position data with computed PnL, margin ratio, and liquidation price
+
+## Fees
+
+| Fee type | Rate |
+|----------|------|
+| Trading fee | 0.1% of notional |
+| Funding rate | Continuous, based on mark vs index price divergence |
+| Network fee | ~0.005 SOL per transaction |
+
+There are no deposit or withdrawal fees beyond Solana network costs.

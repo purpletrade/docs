@@ -1,0 +1,70 @@
+---
+title: "Programs & Deployments"
+description: "Solana program IDs and deployment addresses"
+---
+
+## Percolator Program
+
+Purple.trade deploys its own instance of the Percolator perpetual futures engine on Solana. The program source is based on the canonical open-source implementation by Anatoly Yakovenko.
+
+<Card title="Source Code" icon="github" href="https://github.com/aeyakovenko/percolator-prog">
+  `aeyakovenko/percolator-prog` — the canonical Percolator program source.
+</Card>
+
+## Devnet
+
+Testing deployment for development and integration testing.
+
+| Component | Address |
+|-----------|---------|
+| Percolator Program | `2SSnp35m7FQ7cRLNKGdW5UzjYFF6RBUNq7d3m5mqNByp` |
+| Matcher Program | `4HcGCsyjAqnFua5ccuXyt8KRRQzKFbGTJkVChpS7Yfzy` |
+| Meteora DBC | `dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN` |
+
+<Note>
+  Devnet programs are for testing only. Tokens and positions on devnet have no value.
+</Note>
+
+## Mainnet
+
+Production deployment details will be published here when mainnet launches.
+
+<Info>
+  Purple.trade is deploying its own Percolator program instance on Solana mainnet. Program addresses will be announced at launch.
+</Info>
+
+## Program Architecture
+
+```
+┌──────────────────────┐     ┌──────────────────────┐
+│  Percolator Program  │     │   Matcher Program     │
+│  (perpetual engine)  │────▶│   (LP matching)       │
+└──────────┬───────────┘     └───────────────────────┘
+           │
+           ▼
+┌──────────────────────┐
+│    Slab Account      │
+│  (full market state) │
+│  4096 account slots  │
+│  ~992 KB, ~6.9 SOL   │
+└──────────────────────┘
+```
+
+Each perpetual market is a single slab account owned by the Percolator program. The Matcher program handles LP order matching via CPI (cross-program invocation).
+
+## Explorer Links
+
+### Devnet
+
+- [Percolator Program](https://explorer.solana.com/address/2SSnp35m7FQ7cRLNKGdW5UzjYFF6RBUNq7d3m5mqNByp?cluster=devnet)
+- [Matcher Program](https://explorer.solana.com/address/4HcGCsyjAqnFua5ccuXyt8KRRQzKFbGTJkVChpS7Yfzy?cluster=devnet)
+- [Meteora DBC](https://explorer.solana.com/address/dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN?cluster=devnet)
+
+## Network Configuration
+
+Purple.trade is network-agnostic at the code level. The same application connects to devnet or mainnet based on environment configuration:
+
+| Environment | Convex Project | Solana Network |
+|-------------|---------------|----------------|
+| Development | `utmost-rook-749` | Devnet |
+| Production | TBA | Mainnet |
