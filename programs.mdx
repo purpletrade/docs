@@ -66,14 +66,13 @@ The Percolator program is deployed on Solana **mainnet** with **no upgrade autho
 
 ### Verified Build
 
-The program binary can be independently verified by building from source and comparing hashes:
+The deployed program binary hash:
 
-| | Hash |
-|---|---|
-| **On-chain** | `e5d99925ccd118865dfc64262edfd5531b76c4c8e894236a710e8aac300dbb4b` |
-| **Local build** | `e5d99925ccd118865dfc64262edfd5531b76c4c8e894236a710e8aac300dbb4b` |
+```
+e5d99925ccd118865dfc64262edfd5531b76c4c8e894236a710e8aac300dbb4b
+```
 
-Matching hashes confirm the deployed program is byte-for-byte identical to the [open-source code](https://github.com/purpletrade/percolator-prog).
+Anyone can verify this by cloning [percolator-prog](https://github.com/purpletrade/percolator-prog), building from source, and comparing the output hash against the on-chain binary. A match proves the deployed program is byte-for-byte identical to the open-source code — no hidden modifications.
 
 ### Mainnet Explorer Links
 
