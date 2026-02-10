@@ -1,6 +1,7 @@
 ---
 title: "Percolator Engine"
 description: "The on-chain perpetual futures protocol powering purple.trade"
+icon: "microchip"
 ---
 
 ## Overview
@@ -118,19 +119,6 @@ This means any SPL token can have a perpetual market without needing external li
 
 ## Source Code
 
-<CardGroup cols={2}>
-  <Card title="percolator-prog" icon="github" href="https://github.com/purpletrade/percolator-prog">
-    Core Solana smart contract (~4,400 lines of Rust).
-  </Card>
-  <Card title="percolator-cli" icon="github" href="https://github.com/purpletrade/percolator-cli">
-    CLI for trading, keeper operations, and market management.
-  </Card>
-  <Card title="percolator-match" icon="github" href="https://github.com/purpletrade/percolator-match">
-    Passive LP matcher with 50bps spread.
-  </Card>
-  <Card title="percolator" icon="github" href="https://github.com/purpletrade/percolator">
-    Formally verified risk engine (Kani).
-  </Card>
-</CardGroup>
+All four protocol repositories are open source. See the [Repositories](/repo-percolator-prog) section for detailed documentation on each component, or the [Programs & Deployments](/programs) page for on-chain addresses.
 
-purple.trade's SDK has been verified byte-for-byte against the canonical source. See the [Source Verification](/verification) page for the full audit.
+purple.trade's SDK has been verified byte-for-byte against the canonical source. See [Don't Trust, Verify](/verification) for the full audit.

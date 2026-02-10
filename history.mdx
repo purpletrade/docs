@@ -1,6 +1,7 @@
 ---
 title: "History"
 description: "The origin of the Percolator protocol — from Solana co-founder Anatoly Yakovenko to purple.trade"
+icon: "clock-rotate-left"
 ---
 
 ## Origins
@@ -68,25 +69,10 @@ On using AI for audits, Yakovenko advised forkers to use LLMs for specs and veri
 
 ## From Fork to Platform
 
-purple.trade maintains the protocol repositories and builds the trading frontend on top of the Percolator engine. All four core repositories are open source:
+purple.trade maintains all four protocol repositories and builds the trading frontend on top of the Percolator engine. Original development stemmed from Yakovenko's repositories ([aeyakovenko/percolator-prog](https://github.com/aeyakovenko/percolator-prog), [aeyakovenko/percolator-cli](https://github.com/aeyakovenko/percolator-cli)).
 
-<CardGroup cols={2}>
-  <Card title="percolator-prog" icon="github" href="https://github.com/purpletrade/percolator-prog">
-    Core Solana smart contract — the perpetual futures engine (~4,400 lines of Rust).
-  </Card>
-  <Card title="percolator-cli" icon="github" href="https://github.com/purpletrade/percolator-cli">
-    CLI for account init, deposits/withdrawals, trading, and keeper operations. Includes stress-test bots. Apache 2.0 licensed.
-  </Card>
-  <Card title="percolator-match" icon="github" href="https://github.com/purpletrade/percolator-match">
-    Passive LP matcher program with a 50bps spread.
-  </Card>
-  <Card title="percolator" icon="github" href="https://github.com/purpletrade/percolator">
-    Formally verified risk engine library using Kani for invariants like conservation and isolation — ensures no over-withdrawals.
-  </Card>
-</CardGroup>
+See the [Repositories](/repo-percolator-prog) section for full documentation on each component.
 
-Original development stemmed from Yakovenko's repositories ([aeyakovenko/percolator-prog](https://github.com/aeyakovenko/percolator-prog), [aeyakovenko/percolator-cli](https://github.com/aeyakovenko/percolator-cli)), with purple.trade repositories representing the ongoing community-driven deployment.
-
-<Warning>
-  All Percolator programs are currently deployed on Solana **devnet** only. The protocol is unaudited and experimental. Do not use real funds.
-</Warning>
+<Note>
+  Percolator programs are deployed on both Solana devnet and mainnet. See the [Programs & Deployments](/programs) page for current addresses and verified build details.
+</Note>
