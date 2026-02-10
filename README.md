@@ -44,7 +44,7 @@ Programs are deployed with **verified builds**, **OtterSec verification**, and e
 | Network | Program | Address |
 |---|---|---|
 | Mainnet | Matcher | [`MTCPqs6RWWUPMHhvZnnB6BLAXS86TDpTaxQW7Pa3aDh`](https://solscan.io/account/MTCPqs6RWWUPMHhvZnnB6BLAXS86TDpTaxQW7Pa3aDh) |
-| Mainnet | Percolator | Deploying |
+| Mainnet | Percolator | [`PRPLUgjCUxCEzNPP6x7XJVK1WR5XX28Zu8MEyTqvGjF`](https://solscan.io/account/PRPLUgjCUxCEzNPP6x7XJVK1WR5XX28Zu8MEyTqvGjF) |
 | Devnet | Percolator | `2SSnp35m7FQ7cRLNKGdW5UzjYFF6RBUNq7d3m5mqNByp` |
 | Devnet | Matcher | `4HcGCsyjAqnFua5ccuXyt8KRRQzKFbGTJkVChpS7Yfzy` |
 
