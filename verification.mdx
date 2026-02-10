@@ -48,7 +48,7 @@ If the hashes match, the deployed program is byte-for-byte identical to the open
 ## Verified Builds
 
 <CardGroup cols={2}>
-  <Card title="Percolator Program" icon="shield-check" href="https://github.com/purpletrade/percolator-prog/actions/runs/21861779506">
+  <Card title="Percolator Program" icon="shield-check" href="https://github.com/purpletrade/percolator-prog/actions/runs/21863687941">
     Latest CI run — click to see build logs and artifact hash
   </Card>
   <Card title="Matcher Program" icon="shield-check" href="https://github.com/purpletrade/percolator-match/actions/runs/21863187116">
@@ -65,7 +65,7 @@ If the hashes match, the deployed program is byte-for-byte identical to the open
 | **Rust** | 1.75.0 |
 | **Branch** | [`verifiable-build`](https://github.com/purpletrade/percolator-prog/tree/verifiable-build) |
 | **Artifact** | `percolator-prog-sbf-1.18.9` (72.5 KB) |
-| **SHA-256** | `86dc9dd2bb1fc2b55cf6e7e680821f7d6aef991db5fbabb2c471dbc4ef1305a7` |
+| **SHA-256** | `bf68c6359fd0ecb2cf245c19ee0ccf10fcdb42b54f4c81d6772d10e1586b5cad` |
 
 ### Matcher Program
 
@@ -101,7 +101,7 @@ docker run --rm -v $(pwd):/work -w /work --platform linux/amd64 \
   cargo-build-sbf --force-tools-install --sbf-out-dir target/deploy -- --locked
 
 shasum -a 256 target/deploy/percolator_prog.so
-# Expected: 86dc9dd2bb1fc2b55cf6e7e680821f7d6aef991db5fbabb2c471dbc4ef1305a7
+# Expected: bf68c6359fd0ecb2cf245c19ee0ccf10fcdb42b54f4c81d6772d10e1586b5cad
 ```
 
 ```bash
@@ -128,9 +128,9 @@ Both repositories include an `upstream-sync.yml` CI workflow that checks for div
 
 ## Security Metadata
 
-Both programs embed [`solana-security-txt`](https://github.com/neodyme-labs/solana-security-txt) in the on-chain binary — contact info, source repo, and security policy discoverable directly from explorers like [SolanaFM](https://solana.fm) and [Solscan](https://solscan.io).
+Both programs embed [`solana-security-txt`](https://github.com/neodyme-labs/solana-security-txt) in the on-chain binary — contact info, source repo, and security policy discoverable directly from explorers. Programs are verified on [OtterSec](https://osec.io/) and display green verification badges on Solscan:
 
-Programs with valid `security.txt` and verified builds display green verification badges on supporting Solana explorers.
+- [Matcher on Solscan](https://solscan.io/account/MTCPqs6RWWUPMHhvZnnB6BLAXS86TDpTaxQW7Pa3aDh) — click the Security tab to see `security.txt` details
 
 ## Formal Verification
 
