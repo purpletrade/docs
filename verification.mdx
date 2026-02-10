@@ -1,13 +1,118 @@
 ---
 title: "Source Verification"
-description: "Byte-for-byte audit of purple.trade's SDK against the canonical Percolator program"
+description: "Verifiable builds, on-chain binary verification, and SDK audit for the Percolator protocol"
 ---
 
 ## Overview
 
-purple.trade's Percolator SDK has been systematically verified against the canonical program source at [`aeyakovenko/percolator-prog`](https://github.com/aeyakovenko/percolator-prog). Every instruction tag, data encoding, account ordering, PDA derivation, and error code has been compared and confirmed to match byte-for-byte.
+purple.trade maintains full verifiability across both layers of the protocol:
 
-## Verification Summary
+1. **On-chain program binaries** — Deterministic SBF builds via CI with published SHA-256 hashes. Anyone can reproduce the exact binary and compare it against the on-chain deployment.
+2. **TypeScript SDK** — Byte-for-byte audit of every instruction, encoding, and account ordering against the canonical Rust source.
+
+## Verifiable Builds
+
+Both on-chain programs are built using the [Solana Foundation's verifiable build toolchain](https://github.com/nicholasgasior/solana-verifiable-build) inside Docker containers. CI runs produce deterministic `.so` artifacts with SHA-256 checksums.
+
+### Percolator Program
+
+| | |
+|---|---|
+| **Repository** | [`purpletrade/percolator-prog`](https://github.com/purpletrade/percolator-prog) |
+| **Build toolchain** | `solanafoundation/solana-verifiable-build:1.18.9` |
+| **Rust version** | 1.75.0 |
+| **CI workflow** | [`verified-build.yml`](https://github.com/purpletrade/percolator-prog/actions/runs/21857175008) |
+| **Branch** | `verifiable-build` |
+| **Artifact SHA-256** | `498f81626b127c8fa9fac2710762d3989650fc7c227a5ebe33f30e6ef291c220` |
+
+### Matcher Program
+
+| | |
+|---|---|
+| **Repository** | [`purpletrade/percolator-match`](https://github.com/purpletrade/percolator-match) |
+| **Build toolchain** | `solanafoundation/solana-verifiable-build:2.3.0` |
+| **CI workflow** | [`verified-build.yml`](https://github.com/purpletrade/percolator-match/actions/runs/21858415743) |
+| **Branch** | `verifiable-build` |
+| **Artifact SHA-256** | `17ccdb7efef55c93ed3eb4105183d9696605e9c0a368b996e1558a6ecf0328ae` |
+
+### How to Verify Yourself
+
+Clone either repository, check out the `verifiable-build` branch, and build inside the same Docker container CI uses:
+
+```bash
+# Percolator program
+git clone https://github.com/purpletrade/percolator-prog
+cd percolator-prog && git checkout verifiable-build
+docker run --rm -v $(pwd):/work -w /work --platform linux/amd64 \
+  solanafoundation/solana-verifiable-build:1.18.9 \
+  cargo-build-sbf --force-tools-install --sbf-out-dir target/deploy -- --locked
+shasum -a 256 target/deploy/percolator_prog.so
+
+# Compare against on-chain binary
+solana program dump GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv onchain.so
+shasum -a 256 onchain.so
+```
+
+```bash
+# Matcher program
+git clone https://github.com/purpletrade/percolator-match
+cd percolator-match && git checkout verifiable-build
+docker run --rm -v $(pwd):/work -w /work --platform linux/amd64 \
+  solanafoundation/solana-verifiable-build:2.3.0 \
+  cargo-build-sbf --force-tools-install --sbf-out-dir target/deploy -- --locked
+shasum -a 256 target/deploy/percolator_match.so
+
+# Compare against on-chain binary
+solana program dump DHP6DtwXP1yJsz8YzfoeigRFPB979gzmumkmCxDLSkUX onchain.so
+shasum -a 256 onchain.so
+```
+
+A `scripts/verify.sh` helper is also included in the percolator-prog repository for one-command verification.
+
+<Tip>
+  Matching hashes prove the deployed binary is byte-for-byte identical to the open-source code — no hidden modifications.
+</Tip>
+
+## Upstream Sync
+
+Both repositories include an `upstream-sync.yml` CI workflow that checks for divergence from Anatoly Yakovenko's original source. This ensures purple.trade's forks stay transparent about any changes relative to the canonical implementation.
+
+You can review the full commit history on each repository to see every change made:
+
+- [percolator-prog commits](https://github.com/purpletrade/percolator-prog/commits/verifiable-build) — security.txt, vendored dependencies, CI pipelines, threat model documentation
+- [percolator-match commits](https://github.com/purpletrade/percolator-match/commits/verifiable-build) — vAMM matcher implementation, LP PDA validation, context initialization
+
+## Security Metadata
+
+Both programs embed [`solana-security-txt`](https://github.com/nicholasgasior/solana-security-txt) metadata in the on-chain binary. This surfaces contact and policy information directly in explorers like [SolanaFM](https://solana.fm) and [Solscan](https://solscan.io):
+
+- **Contact**: tradeonpurple@proton.me
+- **Policy**: [SECURITY.md](https://github.com/purpletrade/percolator-prog/blob/verifiable-build/SECURITY.md)
+- **Source**: Links back to the GitHub repository and verified build workflow
+
+Programs with valid `security.txt` and verified builds display green verification badges on supporting Solana explorers.
+
+## Formal Verification (Kani)
+
+The risk engine library ([`purpletrade/percolator`](https://github.com/purpletrade/percolator)) is formally verified using [Kani model checking](https://model-checking.github.io/kani/). The percolator-prog repository contains **143 passing Kani proofs** covering:
+
+| Category | Proofs | What it verifies |
+|----------|--------|-----------------|
+| Matcher ABI validation | 13 | Rejects malformed matcher responses |
+| Matcher acceptance | 3 | Accepts valid partial/full fills |
+| Owner/signer enforcement | 2 | Only account owner can act |
+| Admin authorization | 3 | Admin burned = all ops disabled |
+| CPI identity binding | 2 | LP matcher program/context must match |
+| Account shape validation | 5+ | Struct layout, alignment, sizing |
+| Edge cases & boundaries | 100+ | Overflow, sign, reserved field checks |
+
+---
+
+## SDK Source Audit
+
+The TypeScript SDK at [`src/lib/percolator/`](https://github.com/purpletrade/purple.trade) has been verified instruction-by-instruction against the Rust source at [`aeyakovenko/percolator-prog`](https://github.com/aeyakovenko/percolator-prog).
+
+### Verification Summary
 
 | Category | Verified | Status |
 |----------|----------|--------|
@@ -18,7 +123,7 @@ purple.trade's Percolator SDK has been systematically verified against the canon
 | Error codes | 25/25 | Verified |
 | Slab layout | 4/4 structs | Verified |
 
-## Instruction Tags
+### Instruction Tags
 
 All 21 instruction discriminators in the SDK match the Rust `Instruction::decode` function exactly:
 
@@ -48,7 +153,7 @@ All 21 instruction discriminators in the SDK match the Rust `Instruction::decode
 
 Tag 21 (`AdminForceCloseAccount`) exists in the Rust source but is intentionally omitted from the SDK as it is an admin-only emergency function.
 
-## Data Encoding
+### Data Encoding
 
 Every instruction's data payload has been verified field-by-field against the Rust `decode` functions. All use little-endian encoding with exact byte offsets:
 
@@ -57,7 +162,7 @@ Every instruction's data payload has been verified field-by-field against the Ru
 - `u128`: 16-byte LE (used for prices in `PushOraclePrice`)
 - `[u8; 32]`: Raw pubkey bytes (used in `UpdateAdmin`, `SetOracleAuthority`)
 
-## Account Orderings
+### Account Orderings
 
 Each instruction's required accounts are verified against the `process_instruction` function in `percolator.rs`. The SDK's `ACCOUNTS_*` arrays match the exact account indexing order used by the Rust program.
 
@@ -77,7 +182,7 @@ For example, `TradeCpi` requires accounts in this exact order:
 
 All 21 instruction account orderings have been verified to match.
 
-## PDA Derivation
+### PDA Derivation
 
 Two PDA patterns used by the protocol, both verified:
 
@@ -94,7 +199,7 @@ SDK:    PublicKey.findProgramAddressSync([Buffer.from("lp"), slab.toBuffer(), id
         where idxBuf = u16 little-endian
 ```
 
-## Error Codes
+### Error Codes
 
 25 of 27 Rust error variants are mapped in the SDK. The error enum ordering is identical:
 
@@ -120,7 +225,7 @@ SDK:    PublicKey.findProgramAddressSync([Buffer.from("lp"), slab.toBuffer(), id
 | 26 | InvalidConfigParam | Omitted (admin-only) |
 | 27 | HyperpTradeNoCpiDisabled | Omitted (internal) |
 
-## Slab Layout
+### Slab Layout
 
 The slab binary layout has been verified struct-by-struct against Rust `#[repr(C)]` definitions:
 
@@ -133,7 +238,7 @@ The slab binary layout has been verified struct-by-struct against Rust `#[repr(C
 
 Field offsets within each struct have been checked against the `repr(C)` layout rules accounting for alignment and padding.
 
-## Methodology
+### Methodology
 
 The verification was performed by:
 
@@ -145,10 +250,16 @@ The verification was performed by:
 ## Source References
 
 <CardGroup cols={2}>
-  <Card title="percolator-prog (purple.trade)" icon="github" href="https://github.com/purpletrade/percolator-prog">
-    purple.trade's fork of the Percolator program — verified against the original.
+  <Card title="percolator-prog" icon="github" href="https://github.com/purpletrade/percolator-prog">
+    Core program — verified SBF builds, security.txt, formal proofs.
+  </Card>
+  <Card title="percolator-match" icon="github" href="https://github.com/purpletrade/percolator-match">
+    LP matcher — verified SBF builds, vAMM implementation.
   </Card>
   <Card title="percolator-prog (Original)" icon="github" href="https://github.com/aeyakovenko/percolator-prog">
     Canonical source by Solana co-founder Anatoly Yakovenko.
+  </Card>
+  <Card title="percolator (Risk Engine)" icon="github" href="https://github.com/purpletrade/percolator">
+    Formally verified risk library — 143 Kani proofs.
   </Card>
 </CardGroup>

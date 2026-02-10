@@ -53,26 +53,36 @@ All Percolator programs are currently deployed on Solana **devnet** for testing.
 
 ## Mainnet Deployment
 
-The Percolator program is deployed on Solana **mainnet** with **no upgrade authority** — the program is immutable forever.
+Both programs are deployed on Solana **mainnet** with upgrade authority retained for security patching, backed by **verified builds** and on-chain `security.txt` metadata.
 
-| Component | Address |
-|-----------|---------|
-| Percolator Program | `GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv` |
-| Matcher Program | `DHP6DtwXP1yJsz8YzfoeigRFPB979gzmumkmCxDLSkUX` |
+| Component | Address | Verified Build |
+|-----------|---------|----------------|
+| Percolator Program | `GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv` | [CI run](https://github.com/purpletrade/percolator-prog/actions/runs/21857175008) |
+| Matcher Program | `DHP6DtwXP1yJsz8YzfoeigRFPB979gzmumkmCxDLSkUX` | [CI run](https://github.com/purpletrade/percolator-match/actions/runs/21858415743) |
 
 <Tip>
-  **Authority: none** — This program cannot be upgraded, paused, or modified by anyone. The code running on-chain today is the code that will run forever.
+  Both programs use the Solana Foundation's verifiable build toolchain. The on-chain binary is byte-for-byte reproducible from the open-source code. Explorers that support `security.txt` and verified builds will display green verification badges.
 </Tip>
 
-### Verified Build
+### Why Upgradeable
 
-The deployed program binary hash:
+Rather than making programs immutable, we retain upgrade authority with full transparency:
 
-```
-e5d99925ccd118865dfc64262edfd5531b76c4c8e894236a710e8aac300dbb4b
-```
+- **Verified builds** — Every deployment is built deterministically inside `solanafoundation/solana-verifiable-build` Docker containers. CI publishes SHA-256 hashes that anyone can reproduce.
+- **security.txt** — Contact information, source repository, and security policy are embedded in the on-chain binary via `solana-security-txt`.
+- **Open commit history** — All changes are visible on GitHub. An upstream sync workflow flags any divergence from Anatoly's original source.
+- **Formal verification** — 143 Kani proofs validate the risk engine's core safety invariants.
 
-Anyone can verify this by cloning [percolator-prog](https://github.com/purpletrade/percolator-prog), building from source, and comparing the output hash against the on-chain binary. A match proves the deployed program is byte-for-byte identical to the open-source code — no hidden modifications.
+This approach allows us to patch critical bugs and respond to security disclosures while maintaining the same level of verifiability as an immutable program. See the [Source Verification](/verification) page for full details on how to verify the deployed binaries yourself.
+
+### Build Artifacts
+
+| Program | Toolchain | SHA-256 |
+|---------|-----------|---------|
+| `percolator_prog.so` | Solana 1.18.9 / Rust 1.75.0 | `498f8162...c220` |
+| `percolator_match.so` | Solana 2.3.0 | `17ccdb7e...28ae` |
+
+Full hashes and verification instructions on the [Source Verification](/verification#verifiable-builds) page.
 
 ### Mainnet Explorer Links
 
