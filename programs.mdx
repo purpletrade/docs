@@ -51,11 +51,34 @@ All Percolator programs are currently deployed on Solana **devnet** for testing.
 - [Matcher Program](https://explorer.solana.com/address/4HcGCsyjAqnFua5ccuXyt8KRRQzKFbGTJkVChpS7Yfzy?cluster=devnet)
 - [Meteora DBC](https://explorer.solana.com/address/dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN?cluster=devnet)
 
-## Mainnet
+## Mainnet Deployment
 
-<Info>
-  purple.trade is deploying its own Percolator program instance on Solana mainnet. Program addresses will be announced at launch.
-</Info>
+The Percolator program is deployed on Solana **mainnet** with **no upgrade authority** — the program is immutable forever.
+
+| Component | Address |
+|-----------|---------|
+| Percolator Program | `GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv` |
+| Matcher Program | `DHP6DtwXP1yJsz8YzfoeigRFPB979gzmumkmCxDLSkUX` |
+
+<Tip>
+  **Authority: none** — This program cannot be upgraded, paused, or modified by anyone. The code running on-chain today is the code that will run forever.
+</Tip>
+
+### Verified Build
+
+The program binary can be independently verified by building from source and comparing hashes:
+
+| | Hash |
+|---|---|
+| **On-chain** | `e5d99925ccd118865dfc64262edfd5531b76c4c8e894236a710e8aac300dbb4b` |
+| **Local build** | `e5d99925ccd118865dfc64262edfd5531b76c4c8e894236a710e8aac300dbb4b` |
+
+Matching hashes confirm the deployed program is byte-for-byte identical to the [open-source code](https://github.com/purpletrade/percolator-prog).
+
+### Mainnet Explorer Links
+
+- [Percolator Program](https://explorer.solana.com/address/GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv)
+- [Matcher Program](https://explorer.solana.com/address/DHP6DtwXP1yJsz8YzfoeigRFPB979gzmumkmCxDLSkUX)
 
 ## Program Architecture
 
