@@ -1,0 +1,191 @@
+---
+title: "percolator-cli"
+description: "Command-line interface for trading, keeper operations, and market management"
+icon: "terminal"
+---
+
+<Info>
+  **Repository**: [purpletrade/percolator-cli](https://github.com/purpletrade/percolator-cli) · **License**: Apache 2.0 · **Language**: TypeScript · **Runtime**: Node.js / tsx
+</Info>
+
+## What It Does
+
+`percolator-cli` is a comprehensive command-line tool for interacting with the Percolator protocol on Solana. It supports all protocol operations: account management, trading, keeper cranking, LP setup, market analysis, and stress testing.
+
+## Installation
+
+```bash
+pnpm install
+pnpm build
+```
+
+## Configuration
+
+Create `~/.config/percolator-cli.json`:
+
+```json
+{
+  "rpcUrl": "https://api.devnet.solana.com",
+  "programId": "2SSnp35m7FQ7cRLNKGdW5UzjYFF6RBUNq7d3m5mqNByp",
+  "walletPath": "~/.config/solana/id.json"
+}
+```
+
+Or use flags: `--rpc`, `--program`, `--wallet`, `--json`, `--simulate`.
+
+## Commands
+
+### User Operations
+
+```bash
+# Initialize user account
+percolator-cli init-user --slab <pubkey>
+
+# Deposit / withdraw collateral
+percolator-cli deposit --slab <pubkey> --user-idx <n> --amount <lamports>
+percolator-cli withdraw --slab <pubkey> --user-idx <n> --amount <lamports>
+
+# Trade via matcher CPI
+percolator-cli trade-cpi --slab <pubkey> --user-idx <n> --lp-idx <n> \
+  --size <i128> --matcher-program <pubkey> --matcher-ctx <pubkey> --oracle <pubkey>
+
+# Trade without matcher (testing)
+percolator-cli trade-nocpi --slab <pubkey> --user-idx <n> --lp-idx <n> \
+  --size <i128> --oracle <pubkey>
+
+# Close account
+percolator-cli close-account --slab <pubkey> --idx <n>
+```
+
+### Keeper Operations
+
+```bash
+# Run keeper crank (permissionless)
+percolator-cli keeper-crank --slab <pubkey> --oracle <pubkey>
+
+# Check best LP prices before trading
+percolator-cli best-price --slab <pubkey> --oracle <pubkey>
+```
+
+<Note>
+  Risk-increasing trades require a **recent keeper crank** — within the last 200 slots (~80 seconds). Run the crank before trading or use the crank bot for continuous operation.
+</Note>
+
+### LP Operations
+
+```bash
+# Initialize LP account
+percolator-cli init-lp --slab <pubkey>
+
+# Deposit collateral to LP
+percolator-cli deposit --slab <pubkey> --user-idx <lp-idx> --amount <lamports>
+```
+
+### Admin Operations
+
+```bash
+# Rotate admin
+percolator-cli update-admin --slab <pubkey> --new-admin <pubkey>
+
+# Set risk threshold
+percolator-cli set-risk-threshold --slab <pubkey> --threshold-bps <n>
+
+# Oracle authority (push custom prices)
+percolator-cli set-oracle-authority --slab <pubkey> --authority <pubkey>
+percolator-cli push-oracle-price --slab <pubkey> --price <usd>
+
+# Update market configuration
+percolator-cli update-config --slab <pubkey> --funding-horizon-slots <n> ...
+```
+
+### Market Analysis
+
+```bash
+# View slab state
+percolator-cli slab:get --slab <pubkey>
+percolator-cli slab:header --slab <pubkey>
+percolator-cli slab:config --slab <pubkey>
+
+# Dump full market state to JSON
+npx tsx scripts/dump-state.ts
+npx tsx scripts/dump-market.ts
+
+# Check liquidation risk / funding / parameters
+npx tsx scripts/check-liquidation.ts
+npx tsx scripts/check-funding.ts
+npx tsx scripts/check-params.ts
+
+# Find user account by owner
+npx tsx scripts/find-user.ts <slab> <owner>
+```
+
+## Bots & Scripts
+
+### Keeper Bot
+
+Continuous crank every 5 seconds:
+
+```bash
+npx tsx scripts/crank-bot.ts
+```
+
+### Random Traders
+
+Simulates 5 traders with momentum bias, routing to the best LP by price:
+
+```bash
+npx tsx scripts/random-traders.ts
+```
+
+### LP Setup
+
+Create a vAMM-configured LP with matcher context + deposit:
+
+```bash
+npx tsx scripts/add-vamm-lp.ts
+```
+
+### Market Setup
+
+Full devnet market with funded LP and insurance:
+
+```bash
+npx tsx scripts/setup-devnet-market.ts
+```
+
+## Stress Testing & Security
+
+The CLI includes comprehensive stress tests and penetration testing scripts:
+
+| Script | What it tests |
+|--------|--------------|
+| `stress-haircut-system.ts` | Conservation, insurance fund, undercollateralization |
+| `stress-worst-case.ts` | Gap risk, insurance exhaustion, socialized losses |
+| `oracle-authority-stress.ts` | Price manipulation scenarios |
+| `pentest-oracle.ts` | Flash crash, price edges, timestamp attacks, funding manipulation |
+| `test-price-profit.ts` | Price-profit relationship validation |
+| `test-threshold-increase.ts` | Auto-threshold adjustment verification |
+| `test-lp-profit-realize.ts` | LP profit realization and withdrawal |
+| `test-profit-withdrawal.ts` | Profit withdrawal limit enforcement |
+
+## Testing
+
+```bash
+# Unit tests
+pnpm test
+
+# Devnet integration
+./test-vectors.sh
+
+# Live trading test (with PnL validation)
+npx tsx tests/t21-live-trading.ts 3             # 3 minutes
+npx tsx tests/t21-live-trading.ts 3 --inverted  # inverted market
+```
+
+## Original Source
+
+Forked from [`aeyakovenko/percolator-cli`](https://github.com/aeyakovenko/percolator-cli).
+
+<Card title="View Repository" icon="github" href="https://github.com/purpletrade/percolator-cli">
+  Full CLI source, scripts, bots, and stress tests
+</Card>

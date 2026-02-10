@@ -29,6 +29,15 @@
           "verification",
           "programs"
         ]
+      },
+      {
+        "group": "Repositories",
+        "pages": [
+          "repo-percolator-prog",
+          "repo-percolator-match",
+          "repo-percolator-cli",
+          "repo-percolator"
+        ]
       }
     ],
     "global": {

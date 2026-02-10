@@ -1,0 +1,134 @@
+---
+title: "percolator"
+description: "Formally verified risk engine library — the accounting core"
+icon: "shield-check"
+---
+
+<Info>
+  **Repository**: [purpletrade/percolator](https://github.com/purpletrade/percolator) · **License**: Apache 2.0 · **Language**: Rust · **Verification**: Kani model checking
+</Info>
+
+## What It Does
+
+`percolator` is the risk engine crate at the heart of the protocol. It handles all accounting, margin calculations, liquidations, funding accruals, and withdrawal safety checks. The on-chain program ([`percolator-prog`](/repo-percolator-prog)) wraps this library and adds Solana-specific logic (signatures, token transfers, CPI).
+
+The engine's primary security claim:
+
+> **No user can ever withdraw more value than actually exists on the exchange balance sheet.**
+
+## Design
+
+The engine is a **pure state machine** — it does not move tokens, read oracles, or perform CPI. The wrapper program is responsible for all I/O. This separation makes the engine independently testable and formally verifiable.
+
+### What the Engine Does
+
+- Tracks user and LP positions, collateral, and PnL
+- Enforces margin requirements (initial and maintenance)
+- Settles funding between longs and shorts
+- Processes liquidations at oracle price
+- Manages ADL (auto-deleveraging) and socialized losses
+- Enforces withdrawal safety (fresh crank, sweep, no pending socialization)
+- Warms up profits over time (prevents flash-loan-style extraction)
+
+### What the Engine Does NOT Do
+
+- Token transfers (wrapper responsibility)
+- Signature/ownership checks (wrapper responsibility)
+- Oracle price fetching (passed in by wrapper)
+- Matcher CPI (wrapper responsibility)
+
+## Perpetual Design
+
+Percolator is a **hybrid** design:
+
+- **Synthetics-style risk** — Users trade against LP accounts. The engine enforces margin, liquidation, and balance sheet safety.
+- **Orderbook-style execution** — LPs provide pluggable matcher programs that can implement AMM, RFQ, or CLOB logic.
+
+### Key Design Decisions
+
+- **Positions are LP-fungible** — A position opened against LP1 can be closed against LP2. The engine uses variation margin semantics with `settle_mark_to_oracle` before mutating positions.
+- **Liquidations are oracle-price closes** — No need to find the original counterparty. PnL routes through the engine's waterfall (insurance fund, ADL, socialization).
+- **Profit warmup** — Positive PnL warms into withdrawable capital over time, preventing flash extraction.
+
+## Keeper Crank
+
+The `keeper_crank` function is permissionless and cursor-based:
+
+- Scans up to `ACCOUNTS_PER_CRANK` slots per call
+- Detects sweep completion when cursor wraps
+- Processes liquidations, force-realize, and GC within per-call budgets:
+
+| Budget | Limit |
+|--------|-------|
+| Liquidations per crank | 120 |
+| Force-realize per crank | 32 |
+| GC (close abandoned) per crank | 32 |
+
+Abandoned accounts (zero position, zero capital, non-positive PnL) are automatically freed by crank GC.
+
+## Formal Verification
+
+The crate includes **143 Kani proofs** that verify safety invariants:
+
+### Conservation
+No value is created from nothing. Total deposits + insurance = total withdrawable capital + positions.
+
+### Isolation
+No cross-account contagion. One account's state cannot corrupt another's.
+
+### No Over-Withdrawal
+Users cannot extract more than their deposited capital plus earned (and warmed) PnL.
+
+### Proof Categories
+
+| Category | Count | What it proves |
+|----------|-------|---------------|
+| Matcher ABI validation | 13 | Malformed matcher returns rejected |
+| Matcher acceptance | 3 | Valid fills accepted correctly |
+| Owner/signer enforcement | 2 | Only owner can act on account |
+| Admin authorization | 3 | Burned admin disables all ops |
+| CPI identity binding | 2 | Matcher must match LP registration |
+| Account shape validation | 5+ | Struct layout, alignment |
+| Edge cases & boundaries | 100+ | Overflow, sign, i128::MIN safety |
+
+### Running Proofs
+
+```bash
+cargo install --locked kani-verifier
+cargo kani setup
+cargo kani
+```
+
+## Withdrawal Safety
+
+The engine enforces multiple gates before allowing withdrawals:
+
+1. **Fresh crank** — `last_crank_slot` must be within `max_crank_staleness_slots`
+2. **Recent sweep** — A full account sweep must have started recently
+3. **No pending socialization** — Blocks extraction while `pending_profit_to_fund` or `pending_unpaid_loss` are non-zero
+4. **Post-withdrawal margin** — If a position remains open, margin requirements must still be met
+
+## Integration
+
+The engine is used by the wrapper program like this:
+
+```rust
+// Deposits
+spl_transfer(user_ata -> vault, amount);
+risk_engine.deposit(idx, amount, now_slot);
+
+// Withdrawals
+risk_engine.withdraw(idx, amount, now_slot, oracle_price)?;
+spl_transfer(vault -> user_ata, amount);  // only if Ok
+
+// Trading
+risk_engine.execute_trade(matcher, lp_idx, user_idx, now_slot, oracle_price, size);
+```
+
+## Original Source
+
+Forked from Anatoly Yakovenko's [`aeyakovenko/percolator`](https://github.com/aeyakovenko/percolator).
+
+<Card title="View Repository" icon="github" href="https://github.com/purpletrade/percolator">
+  Risk engine source, Kani proofs, and integration API
+</Card>

@@ -12,7 +12,7 @@ purple.trade maintains full verifiability across both layers of the protocol:
 
 ## Verifiable Builds
 
-Both on-chain programs are built using the [Solana Foundation's verifiable build toolchain](https://github.com/nicholasgasior/solana-verifiable-build) inside Docker containers. CI runs produce deterministic `.so` artifacts with SHA-256 checksums.
+Both on-chain programs are built using the [Solana verifiable build toolchain](https://github.com/Ellipsis-Labs/solana-verifiable-build) inside Docker containers. CI runs produce deterministic `.so` artifacts with SHA-256 checksums.
 
 ### Percolator Program
 
@@ -84,7 +84,7 @@ You can review the full commit history on each repository to see every change ma
 
 ## Security Metadata
 
-Both programs embed [`solana-security-txt`](https://github.com/nicholasgasior/solana-security-txt) metadata in the on-chain binary. This surfaces contact and policy information directly in explorers like [SolanaFM](https://solana.fm) and [Solscan](https://solscan.io):
+Both programs embed [`solana-security-txt`](https://github.com/neodyme-labs/solana-security-txt) metadata in the on-chain binary. This surfaces contact and policy information directly in explorers like [SolanaFM](https://solana.fm) and [Solscan](https://solscan.io):
 
 - **Contact**: tradeonpurple@proton.me
 - **Policy**: [SECURITY.md](https://github.com/purpletrade/percolator-prog/blob/verifiable-build/SECURITY.md)

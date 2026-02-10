@@ -1,0 +1,130 @@
+---
+title: "percolator-prog"
+description: "The core Solana smart contract — the perpetual futures engine"
+icon: "microchip"
+---
+
+<Info>
+  **Repository**: [purpletrade/percolator-prog](https://github.com/purpletrade/percolator-prog) · **License**: Apache 2.0 · **Language**: Rust · **~4,400 lines**
+</Info>
+
+## What It Does
+
+`percolator-prog` is a single-file Solana program that implements the entire perpetual futures engine. It stores all market state in a single on-chain account called a **slab** and exposes 22 instructions for market creation, trading, risk management, and liquidation.
+
+This is the program deployed on mainnet at [`GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv`](https://explorer.solana.com/address/GFzXiEhiRauw6k59L15zz4UJ9ZANaF5gpPtxEaYCo8jv).
+
+## Architecture
+
+One market = one slab account containing:
+
+- **Header** (72 bytes) — magic, version, admin key, nonce, threshold slot
+- **MarketConfig** (320 bytes) — collateral mint, vault, oracle keys, margin thresholds, funding params
+- **RiskEngine** — stored in-place (zero-copy), wraps the formally verified [`percolator`](/repo-percolator) crate
+- **Account slots** (240 bytes x 4096) — user and LP positions, collateral, PnL
+
+Total slab size: ~992 KB (~6.9 SOL rent).
+
+## Trust Model
+
+The program enforces three distinct trust layers:
+
+| Layer | Responsibility | Trust Level |
+|-------|---------------|-------------|
+| **RiskEngine** | Pure accounting, risk checks, state transitions | Trusted core — no CPI, no token transfers, no signer checks |
+| **Percolator program** | Account validation, token transfers, oracle reads, matcher CPI | Trusted glue — enforces all on-chain constraints |
+| **Matcher program** | Provides execution price/size via CPI | LP-scoped — treated as adversarial, strict ABI validation |
+
+## Two Trade Paths
+
+- **TradeNoCpi** — Direct trade without an external matcher. Used for testing and deterministic scenarios.
+- **TradeCpi** — Production path. Calls an LP-chosen matcher program via CPI, validates the return prefix, then executes through the risk engine.
+
+## Matcher CPI Safety
+
+When a trade goes through `TradeCpi`, the program enforces:
+
+- LP identity signer (PDA-derived, not user-provided)
+- Matcher program + context must match what the LP registered
+- Matcher context must not be executable, must be owned by matcher program
+- Nonce binding prevents replay
+- ABI validation of all return fields (flags, echoed identifiers, size constraints)
+- Engine always uses the matcher's `exec_size`, never the user's requested size
+
+## Risk-Reduction Gating
+
+When the insurance fund is low, the program can enforce risk-reduction-only mode:
+
+- Risk-increasing trades are rejected
+- Risk-reducing trades (closing positions) are always allowed
+- Auto-threshold updates via KeeperCrank with EWMA smoothing and step clamping
+
+## Admin Powers and Limits
+
+The admin key can rotate governance, set risk thresholds, update market config, resolve markets, and force-close abandoned accounts. Setting admin to all zeros **permanently** disables all admin operations.
+
+After market resolution:
+- No config changes allowed
+- Insurance withdrawal only after all positions closed
+- Force-close only for zero-position accounts
+
+See the [admin threat model](https://github.com/purpletrade/percolator-prog/blob/main/README.md#admin-key-threat-model) in the repository for the full attack surface analysis.
+
+## Verified Build
+
+The program is built deterministically using the Solana Foundation's verifiable build toolchain. See the [Source Verification](/verification#verifiable-builds) page for SHA-256 hashes, CI links, and instructions to reproduce the build yourself.
+
+## Instructions
+
+All 22 instructions with their tags:
+
+| Tag | Instruction | Category |
+|-----|-------------|----------|
+| 0 | InitMarket | Market lifecycle |
+| 1 | InitUser | Participant lifecycle |
+| 2 | InitLP | Participant lifecycle |
+| 3 | DepositCollateral | Participant lifecycle |
+| 4 | WithdrawCollateral | Participant lifecycle |
+| 5 | TradeCpi | Trading |
+| 6 | KeeperCrank | Risk / maintenance |
+| 7 | PushOraclePrice | Oracle |
+| 8 | SetOracleAuthority | Oracle |
+| 9 | UpdateAdmin | Admin |
+| 10 | UpdateConfig | Admin |
+| 11 | CloseAccount | Participant lifecycle |
+| 12 | SetMatcher | Admin |
+| 13 | CloseSlab | Admin |
+| 14 | SettleFunding | Risk / maintenance |
+| 15 | Liquidate | Risk / maintenance |
+| 16 | UpdateFundingRate | Risk / maintenance |
+| 17 | ReallocSlab | Admin |
+| 18 | SetFeeReceiver | Admin |
+| 19 | WithdrawFees | Admin |
+| 20 | ToggleTrading | Admin |
+| 21 | AdminForceCloseAccount | Admin (emergency) |
+
+## Build & Test
+
+```bash
+# Build for Solana
+cargo-build-sbf --sbf-out-dir target/deploy -- --locked
+
+# Unit tests
+cargo test
+
+# Kani formal verification (requires kani toolchain)
+cargo kani --tests
+```
+
+## Original Source
+
+Forked from Anatoly Yakovenko's [`aeyakovenko/percolator-prog`](https://github.com/aeyakovenko/percolator-prog). An [upstream sync workflow](https://github.com/purpletrade/percolator-prog/actions) checks for divergence from the original source.
+
+<CardGroup cols={2}>
+  <Card title="View Repository" icon="github" href="https://github.com/purpletrade/percolator-prog">
+    Source code, CI workflows, threat model documentation
+  </Card>
+  <Card title="Verified Build" icon="shield-check" href="https://github.com/purpletrade/percolator-prog/actions/runs/21857175008">
+    Latest SBF build artifact with SHA-256 hash
+  </Card>
+</CardGroup>
