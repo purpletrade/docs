@@ -4,161 +4,165 @@ description: "What separates a production trading platform from a protocol fork"
 icon: "scale-balanced"
 ---
 
-> "Anyone can fork a protocol. Shipping a trading platform is the hard part."
+> "A trade button is not a trading platform."
 
 ## The Difference
 
-Open-source perpetual futures protocols are public. Anyone can fork the code, deploy a program, and call it a DEX. But a protocol is not a product.
+Open-source perpetual futures protocols are public. Anyone can fork the code, deploy a program, and call it a DEX. But a protocol is not a product — the infrastructure between the blockchain and the trader is what makes a platform.
 
-purple.trade is a production trading platform — a real-time terminal with live data infrastructure, automated market deployment, and verified on-chain programs. This page explains what's running under the hood and why it matters to traders.
+```mermaid
+graph LR
+    A["Protocol Fork"] -->|"most stop here"| B["Deploy Program"]
+    B --> C["Add a UI"]
+    C -.->|"purple.trade starts here"| D["Real-Time Backend"]
+    D --> E["Live Terminal"]
+    E --> F["Auto-Deploy Pipeline"]
+    F --> G["Verified & Hardened"]
+    style A fill:#1e1b2e,stroke:#6D28D9,color:#9B8FC2
+    style B fill:#1e1b2e,stroke:#6D28D9,color:#9B8FC2
+    style C fill:#1e1b2e,stroke:#6D28D9,color:#9B8FC2
+    style D fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style E fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style F fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style G fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+```
 
 ---
 
-## Real-Time Data Layer
+## Real-Time Infrastructure
 
-Most on-chain protocols give you a program and a CLI. purple.trade runs a **serverless backend powered by Convex** that turns raw Solana state into a live trading experience.
+purple.trade runs a **serverless Convex backend** that transforms raw Solana state into a live trading experience. This is the single largest infrastructure investment in the platform — and the layer most forks skip entirely.
 
 ### The 10-Second Pipeline
 
-Every 10 seconds, the platform executes a full data cycle for every active market:
+Every 10 seconds, for every active market:
 
-<Steps>
-  <Step title="Fetch">
-    Read the raw slab account from Solana RPC — the entire market state in one call.
-  </Step>
-  <Step title="Parse">
-    Decode the binary slab (header, config, engine state, all 4096 account slots) into structured data. No Anchor, no IDL — direct binary parsing for speed and correctness.
-  </Step>
-  <Step title="Snapshot">
-    Store a price tick and a full account snapshot. Every position, every collateral balance, every funding accrual — captured and timestamped.
-  </Step>
-  <Step title="Detect">
-    Diff the current snapshot against the previous one. Any change in position size, collateral, or account state is classified as a trade — open, close, increase, decrease, or liquidation. No indexer dependency. No event parsing. Pure state diffing.
-  </Step>
-  <Step title="Aggregate">
-    Upsert OHLCV candles across six timeframes simultaneously: 1m, 5m, 15m, 1h, 4h, 1d. Roll volume into a 24-hour accumulator with hourly bucketing.
-  </Step>
-  <Step title="Publish">
-    Patch the live market record. Every frontend component subscribed to this market receives the update instantly via reactive subscription — no polling, no websocket management, no stale data.
-  </Step>
-</Steps>
+```mermaid
+graph TD
+    A["Solana RPC\ngetAccountInfo(slab)"] --> B["Binary Parser\nheader + config + 4096 accounts"]
+    B --> C["Price Tick\n+ Account Snapshot"]
+    C --> D["Trade Detection\nstate diff → open / close / liquidation"]
+    D --> E["Candle Aggregation\n1m · 5m · 15m · 1h · 4h · 1d"]
+    E --> F["Reactive Publish\nevery connected client updates instantly"]
+    style A fill:#1e1b2e,stroke:#6D28D9,color:#F1EEFF
+    style B fill:#1e1b2e,stroke:#6D28D9,color:#F1EEFF
+    style C fill:#1e1b2e,stroke:#7E3AF2,color:#F1EEFF
+    style D fill:#1e1b2e,stroke:#7E3AF2,color:#F1EEFF
+    style E fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style F fill:#2d1f5e,stroke:#A78BFA,color:#F1EEFF
+```
 
-This runs for every market, every 10 seconds, automatically.
+The frontend never polls. Every component — price, chart, position, order book — is a reactive subscriber. When the backend writes, every client receives it instantly.
 
-### Reactive Subscriptions
+### Data Architecture
 
-The frontend never polls. Every component — price display, position card, chart, order book, stats bar — is a **reactive subscriber** to the Convex backend. When the backend writes new data, every connected client receives it in real time. Open the terminal on two devices and watch them update in lockstep.
-
-### What This Means for Traders
-
-| Capability | What it delivers |
-|------------|-----------------|
-| 10-second price ticks | Live oracle prices without manual refresh |
-| Automatic trade detection | Every open, close, increase, decrease, and liquidation captured |
-| Six-timeframe candles | Full OHLCV charting from 1-minute to daily |
-| Reactive position sync | Your PnL, margin ratio, and liquidation price update live |
-| 24h rolling volume | Accurate volume stats computed from on-chain state diffs |
-| Market discovery | New on-chain markets detected and indexed every 60 seconds |
+| Layer | Tables | Refresh |
+|-------|--------|---------|
+| **Market State** | markets, priceTicks, marketStats | 10s |
+| **Trading Data** | trades, accountSnapshots, candles (6 timeframes) | 10s |
+| **Launch Lifecycle** | launches, volumeAccumulator | Event-driven |
+| **Discovery** | Market scan + auto-index | 60s |
 
 <Note>
-  This data layer is what separates a trading terminal from a block explorer with a trade button. Without it, you're reading stale state.
+  This is what separates a trading terminal from a block explorer with a trade button. Without it, you're reading stale state.
 </Note>
 
 ---
 
 ## Scalability
 
-### Permissionless Markets
+### Slab Isolation
 
-purple.trade does not curate a fixed list of markets. Any SPL token on Solana can have a perpetual futures market — deployed automatically, indexed automatically, tradeable immediately.
+Each perpetual market is a single, independent Solana account. No shared state, no global bottleneck.
 
-The architecture scales horizontally by design:
+```mermaid
+graph LR
+    subgraph "Parallel Execution"
+        S1["Slab A\nToken X"]
+        S2["Slab B\nToken Y"]
+        S3["Slab C\nToken Z"]
+    end
+    S1 ---|"independent"| S2
+    S2 ---|"independent"| S3
+    V["Solana Validators"] --> S1
+    V --> S2
+    V --> S3
+    style S1 fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style S2 fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style S3 fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style V fill:#1e1b2e,stroke:#6D28D9,color:#F1EEFF
+```
 
-- **One slab = one market.** Each perpetual market is an independent Solana account. No shared state, no global orderbook bottleneck, no cross-market contagion.
-- **Parallel execution.** Because markets are isolated accounts, Solana validators can process trades on different markets in parallel within the same block.
-- **Auto-deploy pipeline.** When a token's bonding curve completes, the platform detects it and deploys a full Percolator perpetual market — slab creation, oracle setup, LP initialization, seed liquidity — in seconds. No human intervention.
-- **Auto-index.** The backend discovers new on-chain markets every 60 seconds and begins the 10-second data pipeline immediately.
+| Scale | Backend | Latency |
+|-------|---------|---------|
+| 10 markets | Baseline | None |
+| 100 markets | Linear (serverless) | None — parallel fetches |
+| 1,000 markets | Tiered sync, active prioritized | Sub-second for active |
 
-### The Launch Pipeline
+Adding a market means adding an account — not modifying shared state. The Convex backend scales serverlessly. No architectural ceiling.
 
-<Steps>
-  <Step title="Create a token">
-    Submit token details through the launch page. A Meteora Dynamic Bonding Curve pool is created automatically.
-  </Step>
-  <Step title="Price discovery">
-    Users buy and sell on the bonding curve. When the pool reaches the SOL threshold (~80 SOL), migration triggers automatically.
-  </Step>
-  <Step title="Perpetual market deployed">
-    The platform detects the bond completion and auto-deploys a full Percolator perpetual market — slab, vault, oracle, LP, seed liquidity. No manual steps.
-  </Step>
-  <Step title="Live trading">
-    The market appears in the terminal with live charts, trade history, and position tracking. Traders can open leveraged positions immediately.
-  </Step>
-</Steps>
+### Auto-Deploy Pipeline
 
-This pipeline is what "permissionless" actually means. Not 7 hand-picked markets. Not a governance vote to list a new token. Any token, automatically.
+Any SPL token can have a perpetual market — no curation, no governance vote, no manual listing.
 
-### Growth Model
+```mermaid
+graph LR
+    A["Create Token"] --> B["Bonding Curve\n~80 SOL threshold"]
+    B --> C["Bond Detected\nauto-trigger"]
+    C --> D["Deploy Perp Market\nslab + vault + oracle + LP"]
+    D --> E["Live in Terminal\ncharts + trading + positions"]
+    style A fill:#1e1b2e,stroke:#6D28D9,color:#F1EEFF
+    style B fill:#1e1b2e,stroke:#6D28D9,color:#F1EEFF
+    style C fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style D fill:#2d1f5e,stroke:#7E3AF2,color:#F1EEFF
+    style E fill:#2d1f5e,stroke:#A78BFA,color:#F1EEFF
+```
 
-| Markets | Data pipeline cost | Latency impact |
-|---------|-------------------|----------------|
-| 10 | Baseline | None |
-| 100 | Linear (Convex scales serverless) | None — parallel slab fetches |
-| 1,000 | Tiered sync (active markets prioritized) | Sub-second for active markets |
-
-The slab architecture means adding a new market is adding a new account — not modifying shared state. The Convex backend scales serverlessly. There is no architectural ceiling on market count.
+From token creation to leveraged trading — fully automated, no human intervention.
 
 ---
 
-## The Trading Terminal
+## The Terminal
 
-purple.trade is not a CLI. It is a full trading terminal designed for the same workflows traders use on centralized exchanges.
-
-### Three-Panel Layout
+A full trading terminal, not a CLI.
 
 <CardGroup cols={3}>
   <Card title="Order Book" icon="list">
-    Positions, LP accounts, leaderboard, and trade history — tabbed and scrollable. Every entry shows direction, leverage, entry price, PnL, and liquidation price.
+    Positions, LPs, leaderboard, trade history. Live PnL, leverage, liquidation price per entry.
   </Card>
   <Card title="Charts" icon="chart-candlestick">
-    Real-time candlestick charts with 1m, 5m, 15m, 1h, 4h, 1d timeframes. Live price overlay. Entry and liquidation markers when you have an open position.
+    Real-time candles across 6 timeframes. Entry and liquidation markers on open positions.
   </Card>
   <Card title="Order Entry" icon="arrow-right-arrow-left">
-    Direction selector, leverage presets (1x–10x), collateral input with percentage buttons. Real-time simulation shows notional value, margin required, trading fee, and margin ratio before you submit.
+    Leverage presets, collateral input, real-time simulation of notional, margin, fee, and liquidation before you submit.
   </Card>
 </CardGroup>
 
-### What Traders Get
-
-- **Live PnL tracking** — position value, unrealized profit/loss, and return on equity update in real time
-- **Margin health visualization** — see your margin ratio and distance to liquidation at a glance
-- **Trade simulation** — before submitting, see exactly what your notional, margin, and fee will be at the current oracle price
-- **Market browser** — search, sort, and filter all active markets by TVL, open interest, position count, or launch date
-- **Mobile responsive** — the terminal adapts to any screen size, stacking panels vertically on mobile
-- **Multi-wallet support** — connect via Phantom, Solflare, Ledger, Backpack, or any Solana wallet adapter
+- **Live PnL** — position value, margin ratio, and liquidation distance update in real time
+- **Trade simulation** — see exact notional, margin, and fee at current oracle price before submitting
+- **Market browser** — search, sort, and filter by TVL, open interest, position count, or launch date
+- **Mobile responsive** — PWA that adapts to any screen, multi-wallet support
 
 ---
 
 ## Verified and Hardened
 
-Taking an open-source protocol to production means more than deploying it. purple.trade has verified, audited, and hardened every layer.
+Taking an open-source protocol to production means more than deploying it.
 
 <CardGroup cols={2}>
   <Card title="143 Formal Proofs" icon="shield-check">
-    The risk engine is verified using Kani model checking — conservation, isolation, and no-over-withdrawal invariants proven mathematically, not just tested.
+    Kani model checking on the risk engine — conservation, isolation, and no-over-withdrawal proven mathematically.
   </Card>
   <Card title="Verified Builds" icon="fingerprint">
-    Deterministic Docker builds produce the exact same binary every time. SHA-256 hashes published. Anyone can reproduce and compare against the on-chain program.
+    Deterministic Docker builds. SHA-256 hashes published. Anyone can reproduce and compare against the on-chain binary.
   </Card>
   <Card title="OtterSec Verified" icon="badge-check">
-    Both mainnet programs pass OtterSec on-chain verification and display green badges on Solscan.
+    Both mainnet programs verified on-chain. Green badges on Solscan.
   </Card>
   <Card title="SDK Audit" icon="magnifying-glass">
-    The TypeScript SDK is verified byte-for-byte against the Rust source — 21/21 instructions, 25/25 error codes, all PDA derivations.
+    Byte-for-byte verified against Rust source — 21/21 instructions, 25/25 error codes, all PDA derivations.
   </Card>
 </CardGroup>
-
-Every change is tracked against Anatoly Yakovenko's original source via automated upstream sync. Security metadata is embedded directly in the on-chain binaries.
 
 <Card title="Full Verification Details" icon="shield-check" href="/verification">
   SHA-256 hashes, build reproduction instructions, SDK audit tables, and Kani proof breakdown.
@@ -166,65 +170,28 @@ Every change is tracked against Anatoly Yakovenko's original source via automate
 
 ---
 
-## The Convex Backend
+## Production Readiness
 
-The data layer deserves its own section because it is the single largest infrastructure investment in the platform — and the thing most forks skip entirely.
-
-### Eight Tables
-
-| Table | Purpose |
-|-------|---------|
-| **markets** | Market metadata, live on-chain state, oracle config, program references |
-| **priceTicks** | 10-second price snapshots for every market |
-| **accountSnapshots** | Full position state for trade detection via diffing |
-| **trades** | Detected trades with side, size, price, type, and trader address |
-| **candles** | OHLCV data across 1m, 5m, 15m, 1h, 4h, 1d timeframes |
-| **marketStats** | Rolling stats — TVL, open interest, PnL distribution, user count, volume |
-| **launches** | Token launch lifecycle from pending through bonding to live |
-| **volumeAccumulator** | 24-hour rolling volume with hourly bucket granularity |
-
-### Three Cron Tiers
-
-| Tier | Interval | Job |
-|------|----------|-----|
-| **1** | 10 seconds | Tick sync — fetch slab, parse, snapshot, detect trades, aggregate candles, patch market |
-| **2** | 60 seconds | Market discovery — scan for new on-chain markets, create records, begin sync |
-| **3** | Event-driven | Bond detection — monitor Meteora pools, trigger auto-deploy on threshold |
-
-### Why Convex
-
-Convex is a serverless reactive backend. It scales automatically, requires no infrastructure management, and provides real-time subscriptions out of the box. For a trading platform that needs to serve live data to thousands of concurrent users across hundreds of markets, this is the right architecture — not a VPS running a cron job.
-
----
-
-## What Production Looks Like
-
-<Accordion title="The checklist most forks never complete">
-
-| Requirement | Status |
-|-------------|--------|
-| Web-based trading terminal | Live |
-| Real-time candlestick charts (6 timeframes) | Live |
-| Reactive data subscriptions (no polling) | Live |
-| Automatic trade detection from on-chain state | Live |
-| Token launch with auto-deploy pipeline | Live |
-| Permissionless market creation | Live |
-| 10-second data refresh across all markets | Live |
-| Formal verification (143 Kani proofs) | Verified |
+| Capability | Status |
+|------------|--------|
+| Web trading terminal | Live |
+| Real-time charts (6 timeframes) | Live |
+| Reactive subscriptions (no polling) | Live |
+| Automatic trade detection | Live |
+| Token launch + auto-deploy | Live |
+| Permissionless markets | Live |
+| 10-second data pipeline | Live |
+| 143 Kani formal proofs | Verified |
 | Deterministic verified builds | Verified |
 | OtterSec on-chain verification | Verified |
 | Byte-for-byte SDK audit | Verified |
 | On-chain security metadata | Embedded |
 | Upstream source transparency | CI automated |
-| Mobile responsive PWA | Live |
-| Multi-wallet support | Live |
-| Market browser with search and sort | Live |
-| Live PnL, margin, and liquidation tracking | Live |
-| Trade simulation before submission | Live |
+| Mobile PWA + multi-wallet | Live |
 
-Forking a protocol gives you the first row of a spreadsheet. Everything else is the product.
-
-</Accordion>
+<Tip>
+  Forking a protocol gives you the first row. Everything else is the product.
+</Tip>
 
 ---
 
