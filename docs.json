@@ -18,7 +18,6 @@
         "pages": [
           "index",
           "trading",
-          "launch",
           "why-purple"
         ]
       },
@@ -69,7 +68,7 @@
     ],
     "primary": {
       "type": "button",
-      "label": "Launch App",
+      "label": "Open Terminal",
       "href": "https://purple.trade"
     }
   },
